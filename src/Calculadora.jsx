@@ -123,6 +123,31 @@ function Slider({ label, value, onChange, min, max, step = 1, suffix = '', fmt: 
 }
 
 function InputMoney({ label, value, onChange, hint }) {
+  const [focused, setFocused] = useState(false);
+  const [inputVal, setInputVal] = useState('');
+
+  const formatted = value != null ? value.toLocaleString('pt-BR') : '0';
+
+  const handleFocus = (e) => {
+    setFocused(true);
+    setInputVal(value === 0 ? '' : String(value));
+    e.target.style.borderColor = C.orange;
+  };
+
+  const handleBlur = (e) => {
+    setFocused(false);
+    e.target.style.borderColor = C.border;
+  };
+
+  const handleChange = (e) => {
+    const raw = e.target.value;
+    setInputVal(raw);
+    const cleaned = raw.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '');
+    const num = parseFloat(cleaned);
+    if (!isNaN(num)) onChange(num);
+    else if (raw === '') onChange(0);
+  };
+
   return (
     <div style={{ marginBottom: '20px' }}>
       <div style={{ fontSize: '11px', color: C.navyMuted, letterSpacing: '0.08em', textTransform: 'uppercase', fontWeight: 600, marginBottom: '8px' }}>
@@ -131,9 +156,11 @@ function InputMoney({ label, value, onChange, hint }) {
       <div style={{ position: 'relative' }}>
         <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '13px', color: C.slate, fontWeight: 500 }}>R$</span>
         <input
-          type="number"
-          value={value}
-          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          type="text"
+          value={focused ? inputVal : formatted}
+          onChange={handleChange}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           style={{
             width: '100%',
             padding: '12px 14px 12px 40px',
@@ -148,8 +175,6 @@ function InputMoney({ label, value, onChange, hint }) {
             outline: 'none',
             transition: 'border-color 0.15s',
           }}
-          onFocus={(e) => e.target.style.borderColor = C.orange}
-          onBlur={(e) => e.target.style.borderColor = C.border}
         />
       </div>
       {hint && <div style={{ fontSize: '11px', color: C.slate, marginTop: '6px', fontWeight: 400 }}>{hint}</div>}
